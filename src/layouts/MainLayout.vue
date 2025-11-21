@@ -5,7 +5,9 @@
         <q-input :borderless="false" v-model="newTodo" label="New Todo" class="q-pa-md" />
         <q-btn
           @click="
+            fetch();
             todos.push({ title: newTodo, id: id++ });
+            await fetch();
             newTodo = '';
           "
           class="q-pa-md"
@@ -44,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import TodoComponent from 'components/TodoComponent.vue';
 interface Todo {
   title: string;
@@ -57,4 +59,26 @@ const todos = ref<Todo[]>([
 const completed = ref<Todo[]>([]);
 const newTodo = ref('');
 const id = ref(2);
+
+// 1. Create reactive variables
+const data = ref(null);
+const error = ref<Error | null>(null);
+const loading = ref(true);
+
+// 2. Define the fetching function
+const fetchData = async () => {
+  const response = await fetch('https://xzoyjysawi.execute-api.us-east-1.amazonaws.com/todo');
+
+  // Parse JSON and assign to data
+  data.value = await response.json();
+};
+onMounted(async () => {
+  try {
+    await fetchData();
+  } catch (err) {
+    error.value = err as Error;
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
